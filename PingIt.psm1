@@ -788,4 +788,4 @@ function Invoke-PingIt {
     }
 }
 New-Alias -Name PingIt -Value Invoke-PingIt
-Export-ModuleMember -Alias * -Function Invoke-PingIt, ResolveDestination
+Export-ModuleMember -Alias * -Function Invoke-PingIt
