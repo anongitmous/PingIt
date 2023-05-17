@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.0.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -98,16 +98,20 @@ PrivateData = @{
         # Tags = @()
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/anongitmous/PingIt/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/anongitmous/PingIt'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.2
+* tightened up the resolve destination functionality to be more uniform in the event of errors
+* other minor tweaks
+
 ## 0.0.1
 Initial Release
 * Works on both Windows and Linux
