@@ -33,6 +33,15 @@ e.g. Invoke-PingIt google.com -LatencyThreshold 100
 
 The alias for Invoke-PingIt is PingIt.
 
+Screenshots
+===========
+- Normal ping output. If latency exceeds the value specified in LatencyThreshold, the ping output will be in yellow text.  
+![Normal](./screenshots/PingSummary.png)  
+- Sample latency summary and detail when moving average is utilized for tracking. When there are more than three records, the longest latency period will be highlighted in red and the shortest in yellow.  
+![Latency](./screenshots/LatencySummaryandDetail.png)  
+- Sample outage summary and detail. When there are more than three records, the longest outage period will be highlighted in red and the shortest in yellow.  
+![Outage](./screenshots/OutageSummaryandDetail.png)  
+
 
 Requirements
 ============
