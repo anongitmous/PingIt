@@ -321,6 +321,7 @@ function Invoke-PingIt {
     $theArgs = @{
         BufferSize = $BufferSize
         Count = 1 # this is 1 because we want the output from Test-Connection after each call
+        ErrorAction = 'SilentlyContinue'
         MaxHops = $MaxHops
         TargetName = $Target
         TimeoutSeconds = $Timeout
@@ -576,9 +577,7 @@ function Invoke-PingIt {
                 break
             }
         }
-    }
-    finally {
-        [Console]::TreatControlCAsInput = $false # make sure this is reset
+
         $endTimestamp = Get-Date
 
         # are we tracking latency issues and are we in the middle of tracking one?
@@ -785,6 +784,9 @@ function Invoke-PingIt {
             Write-Host "`nControl-C"
             Write-Host '^C'
         }
+    }
+    finally {
+        [Console]::TreatControlCAsInput = $false # make sure this is reset
     }
 }
 New-Alias -Name PingIt -Value Invoke-PingIt

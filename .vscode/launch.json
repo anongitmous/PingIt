@@ -9,6 +9,22 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
+            "args": ["172.217.0.174", "-ResolveDestination", "-LatencyThreshold", "100", "-LatencyWindow", "10", "-LatencyMovingAvg"]
+        },
+        {
+            "name": "PingIt",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "./PingIt.ps1",
+            "cwd": "${file}",
+            "args": ["google.com", "-LatencyThreshold", "100", "-LatencyWindow", "10", "-LatencyMovingAvg"]
+        },
+        {
+            "name": "ResolveDestination",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "ResolveDestination.ps1",
+            "cwd": "${file}",
             "args": ["-target", "172.217.0.174", "-bufferSize", "32", "-timeoutSeconds", "5"]
         }
     ]

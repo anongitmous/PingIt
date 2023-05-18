@@ -6,6 +6,7 @@ try {
 catch {
     # do nothing, we don't care
 }
+# in order for this to work, ResolveDestination needs to be added to the functions exported via Export-ModuleMember in PingIt.psm1
 Import-Module .\..\PingIt.psm1
 
 

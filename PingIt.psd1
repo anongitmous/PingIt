@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.2'
+ModuleVersion = '0.0.3'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -78,7 +78,7 @@ CmdletsToExport = @()
 VariablesToExport = '*'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @('PingIt')
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('Ping', 'Icmp', 'Linux', 'Windows')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/anongitmous/PingIt/blob/master/LICENSE'
@@ -108,6 +108,10 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.3
+* intermittently, final summary and stats data were not showing up, so that logic was moved inside of the try block
+* added ErrorAction = SilentlyContinue to the calls to Test-Connection
+
 ## 0.0.2
 * tightened up the resolve destination functionality to be more uniform in the event of errors
 * other minor tweaks
