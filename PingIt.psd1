@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.3'
+ModuleVersion = '0.0.4'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -108,6 +108,10 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.4
+* In some instances, summary output was not being output when Ctrl-C was pressed. The problem seems to have been that
+TreatControlCAsInput was a script-level variable. Moving its handling into Invoke-PingIt seems to have rectified the issue
+
 ## 0.0.3
 * intermittently, final summary and stats data were not showing up, so that logic was moved inside of the try block
 * added ErrorAction = SilentlyContinue to the calls to Test-Connection

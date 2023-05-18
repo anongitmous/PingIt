@@ -77,9 +77,6 @@
    Invoke-PingIt contoso.com -Timestamps
 #>
 
-# so we can capture Ctrl-C
-[Console]::TreatControlCAsInput = $true
-$Host.UI.RawUI.FlushInputBuffer()
 # [ConsoleColor]$currentForegroundColor = $Host.UI.RawUI.ForegroundColor
 [char]$script:e = [char]27 # console virtual terminal ESC sequence (0x1B)
 
@@ -318,6 +315,10 @@ function Invoke-PingIt {
         [int]$MaxHops = 128
     )
 
+    # so we can capture Ctrl-C
+    [Console]::TreatControlCAsInput = $true
+    $Host.UI.RawUI.FlushInputBuffer()
+
     $theArgs = @{
         BufferSize = $BufferSize
         Count = 1 # this is 1 because we want the output from Test-Connection after each call
@@ -396,7 +397,6 @@ function Invoke-PingIt {
                 # Flush the key buffer again for the next loop.
                 $Host.UI.RawUI.FlushInputBuffer()
                 If ($keyCharacter -eq 3) {
-                    [Console]::TreatControlCAsInput = $false
                     $ctrlCIntercepted = $true
                     break
                 }
