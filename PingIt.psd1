@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.4'
+ModuleVersion = '0.0.5'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Ping', 'Icmp', 'Linux', 'Windows')
+        Tags = @('Ping', 'Icmp', 'Network', 'Diagnostics', 'Troubleshooting', 'Linux', 'Windows')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/anongitmous/PingIt/blob/master/LICENSE'
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.5
+* Updated manifest's tags
+
 ## 0.0.4
 * In some instances, summary output was not being output when Ctrl-C was pressed. The problem seems to have been that
 TreatControlCAsInput was a script-level variable. Moving its handling into Invoke-PingIt seems to have rectified the issue

@@ -69,7 +69,7 @@
    Invoke-PingIt contoso.com -LatencyThreshold 75 -LatencyMovingAvg -LatencyWindow 10 -Count 250
 
  .Example
-   # Attempt to resolve and ping 10.0.0.1 continuously until Ctrl-C is pressed track outages.
+   # Attempt to resolve and ping 10.0.0.1 continuously until Ctrl-C is pressed and track outages.
    Invoke-PingIt 10.0.0.1 -ResolveDestination
 
  .Example
@@ -77,9 +77,8 @@
    Invoke-PingIt contoso.com -Timestamps
 #>
 
-# [ConsoleColor]$currentForegroundColor = $Host.UI.RawUI.ForegroundColor
-[char]$script:e = [char]27 # console virtual terminal ESC sequence (0x1B)
 
+[char]$script:e = [char]27 # console virtual terminal ESC sequence (0x1B)
 
 
 function ColorizeMinMax {
