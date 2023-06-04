@@ -29,6 +29,9 @@
   .Parameter LatencyMovingAvg
   If specified, the moving average over LatencyWindow packets will be compared with the LatencyThreshold to determine applicability.
 
+  .Parameter OutageMinPackets
+  Sets how many packets must fail in some manner in order for an outage record to be created. Defaults to 2.
+
   .Parameter Timestamps
   If specified, timestamps will be displayed for each ping result. Has an alias of 'D'.
 
@@ -106,6 +109,16 @@ function ColorizeMinMax {
     #   we use ${e} instead of $e here because $value$e doesn't parse properly ($e and ${e} evaluate to the same value)
     $result = "$e[${color}m$value${e}[0m"
     $result
+}
+
+function MarkMovingAvgLatencyIssueEnd {
+    [OutputType([string])]
+    param(
+        [string]$value
+    )
+    # '4' is the underline formatting mode
+    # '7' is the 'Negative' formatting mode (swap foreground/background colors)
+    "$e[$(7)m$value${e}[0m"
 }
 
 function CreateLatencyTracker {
@@ -197,11 +210,17 @@ function FinalizeOutage {
         [DateTime]$outageEndTimestamp,
         # need [ref] here because adding element to an array creates a new array
         # the actual type is [PSTypeName('PingIt.ErrorRecord')][object[]], but use 'PSCustomObject' to get pass by referenct to work
-        [ref][PSCustomObject[]]$allErrors
+        [ref][PSCustomObject[]]$allErrors,
+        [int]$outageMinPackets
     )
+    if ($errorRecord.DestinationHostUnreachableCount + $errorRecord.DestinationNetworkUnreachableCount +
+        $errorRecord.DestinationUnreachableCount + $errorRecord.NoResponseCount + $errorRecord.PacketTooBigCount +
+        $errorRecord.TimedOutCount -lt $outageMinPackets) {
+        return
+    }
     $outageActive.Value = $false
     $errorRecord.End = $outageEndTimestamp
-    $errorRecord.Elapsed = ($errorRecord.End -$errorRecord.Start) #(New-TimeSpan -End $errorRecord.End -Start $errorRecord.Start)
+    $errorRecord.Elapsed = ($errorRecord.End -$errorRecord.Start)
     $allErrors.Value += $errorRecord
 }
 
@@ -292,6 +311,10 @@ function Invoke-PingIt {
         [switch]$LatencyMovingAvg,
 
         [Parameter(Mandatory = $false,
+        HelpMessage = "Sets how many packets must fail in some manner in order for an outage record to be created. Defaults to 2.")]
+        [int]$OutageMinPackets = 2,
+
+        [Parameter(Mandatory = $false,
         HelpMessage = "If specified, timestamps will be displayed for each ping result.")]
         [Alias('D')]
         [switch]$Timestamps,
@@ -368,7 +391,7 @@ function Invoke-PingIt {
     [string]$displayAddress = ''
     [string]$elapsedFormat = 'dd\.hh\:mm\:ss'
     [string]$timestampFormat = 'MM/dd hh\:mm\:ss'
-    [string]$perPingTimestampFormat = 'hh\:mm\:ss'
+    [string]$perPingTimestampFormat = 'HH\:mm\:ss'
     [DateTime]$startTimestamp = Get-Date
     [DateTime]$endTimestamp = 0
     [bool]$ctrlCIntercepted = $false
@@ -400,6 +423,7 @@ function Invoke-PingIt {
                     break
                 }
             }
+
             [DateTime]$pingStart = Get-Date
             $result = Test-Connection @theArgs
             [DateTime]$pingEnd = Get-Date
@@ -413,6 +437,7 @@ function Invoke-PingIt {
                 $timestamp = "$($outputObject.Timestamp.ToString($perPingTimestampFormat)) "
             }
 
+            [bool]$latencyTrackingEnded = $false;
             [bool]$errorResult = $false
             [string]$pingMsg = ''
             [ConsoleColor]$pingMsgForegroundColor = [ConsoleColor]::White
@@ -470,6 +495,7 @@ function Invoke-PingIt {
                                     # we were previously in a latency trend, but now it has ended
                                     if ($null -ne $currentLatencyTracker) {
                                         FinalizeLatencyTracker ([ref]$latencyIssues) $currentLatencyTracker $previousLatencyRecord.Timestamp
+                                        $latencyTrackingEnded = $true
                                     }
                                     $currentLatencyTracker = $null
                                 }
@@ -478,7 +504,7 @@ function Invoke-PingIt {
 
                         # is there an outage being tracked? if so, we need to finalize the record
                         if ($errorActive) {
-                            FinalizeOutage ([ref]$errorActive) $currentError $pingEnd ([ref]$errors)
+                            FinalizeOutage ([ref]$errorActive) $currentError $pingEnd ([ref]$errors) $OutageMinPackets
                             $currentError = CreateErrorRecord
                         }
                         $successCount++
@@ -541,7 +567,12 @@ function Invoke-PingIt {
                 $pingMsg = "$($timestamp)No response"
                 $pingMsgForegroundColor = [ConsoleColor]::Red
             }
-            Write-Host $pingMsg -ForegroundColor $pingMsgForegroundColor
+            if ($latencyTrackingEnded -and $LatencyMovingAvg) {
+                Write-Host $(MarkMovingAvgLatencyIssueEnd $pingMsg) -ForegroundColor $pingMsgForegroundColor
+            }
+            else {
+                Write-Host $pingMsg -ForegroundColor $pingMsgForegroundColor
+            }
 
             # was there an error and is it the first one of a new record?
             if ($errorResult -and $false -eq $errorActive) {
@@ -596,7 +627,7 @@ function Invoke-PingIt {
 
         # if we were in the middle of an error situation, finalize the accounting
         if ($errorActive) {
-            FinalizeOutage ([ref]$errorActive) $currentError $endTimestamp ([ref]$errors)
+            FinalizeOutage ([ref]$errorActive) $currentError $endTimestamp ([ref]$errors) $OutageMinPackets
         }
 
         # normal ping statistics

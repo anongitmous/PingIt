@@ -9,7 +9,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "args": ["172.217.0.174", "-ResolveDestination", "-LatencyThreshold", "100", "-LatencyWindow", "10", "-LatencyMovingAvg"]
+            "args": ["172.217.0.174", "-ResolveDestination", "-LatencyThreshold", "50", "-LatencyWindow", "10", "-LatencyMovingAvg", "-Timestamps", "-OutageMinPackets", "2"]
         },
         {
             "name": "PingIt",

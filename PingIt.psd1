@@ -108,6 +108,14 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.6
+* When tracking latency issues using the -LatencyMovingAvg switch, prior to the summary output display, it can be difficult
+to figure out from the per-ping output when a latency issue has come to an end. A change has been made which inverts the foreground
+and background colors of a ping output to indicate the end of a latency issue.
+* If the -Timestamps switch is specified, per-ping output timestamps are now displayed using the 24-hour clock.
+* Added new parameter, -OutageMinPackets, which controls how many non-successful pings must occur for an outage record to be created.
+Using the default of 2 (or higher) avoids situations where e.g. a single timeout creates an outage record.
+
 ## 0.0.5
 * Updated manifest's tags
 
