@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.7'
+ModuleVersion = '0.0.8'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.8
+* The actual status is now displayed to the user for ping result error statuses for which we do not specifically account
+
 ## 0.0.7
 * Added a default handler for ping results
 * Fixed regression defect within FinalizeOutage introduced when support for configuring a ping count threshold for outages

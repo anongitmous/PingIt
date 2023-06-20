@@ -557,7 +557,7 @@ function Invoke-PingIt {
                         # we can assume that this is an error because $result.Status is not Success
                         $unknownErrorCount++
                         $currentError.UnknownErrorCount++
-                        $errorDisplay = "Unknown error"
+                        $errorDisplay = "Error - $($result.Status)"
                     }
                 }
                 if ($result.Status -ne [System.Net.NetworkInformation.IPStatus]::Success) {
