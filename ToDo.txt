@@ -1,1 +1,6 @@
 Experiment with using Out-GridView for the summaries
+Idea: if we were in the middle of a latency issue and we start getting errors, does that mean that the latency issue should be considered to be at an end?
+	let's assume that we're in the middle of a latency moving avg scenario and we get a single time out or some such. should that mean we start over on the moving latency avg tracking?
+		no. we should only conclude latency tracking when either
+			a. the latency threshold issue (moving avg or otherwise) has ended, or
+			b. the number of error pings has met the OutageMinPackets threshold
