@@ -137,6 +137,7 @@ function CreateLatencyTracker {
     $latencyRecord
 }
 
+# only utilized when LatencyMovingAvg is true
 function HandleLatency {
     [OutputType('PingIt.LatencyRecord')]
     param(
@@ -157,6 +158,7 @@ function HandleLatency {
     $latencyRecord
 }
 
+# only utilized when LatencyMovingAvg is true
 function EvaluateLatencyState {
     [OutputType([bool])]
     param(
@@ -198,6 +200,7 @@ function CreateErrorRecord {
         PSTypeName = 'PingIt.ErrorRecord'
         Start = $null
         TimedOutCount = 0
+        UnknownErrorCount = 0
         }
     $errorRecord
 }
@@ -209,18 +212,18 @@ function FinalizeOutage {
         [PSTypeName('PingIt.ErrorRecord')]$errorRecord,
         [DateTime]$outageEndTimestamp,
         # need [ref] here because adding element to an array creates a new array
-        # the actual type is [PSTypeName('PingIt.ErrorRecord')][object[]], but use 'PSCustomObject' to get pass by referenct to work
+        # the actual type is [PSTypeName('PingIt.ErrorRecord')][object[]], but use 'PSCustomObject' to get pass by reference to work
         [ref][PSCustomObject[]]$allErrors,
         [int]$outageMinPackets
     )
+    $outageActive.Value = $false
     if ($errorRecord.DestinationHostUnreachableCount + $errorRecord.DestinationNetworkUnreachableCount +
         $errorRecord.DestinationUnreachableCount + $errorRecord.NoResponseCount + $errorRecord.PacketTooBigCount +
-        $errorRecord.TimedOutCount -lt $outageMinPackets) {
+        $errorRecord.TimedOutCount + $errorRecord.UnknownErrorCount -lt $outageMinPackets) {
         return
     }
-    $outageActive.Value = $false
     $errorRecord.End = $outageEndTimestamp
-    $errorRecord.Elapsed = ($errorRecord.End -$errorRecord.Start)
+    $errorRecord.Elapsed = ($errorRecord.End - $errorRecord.Start)
     $allErrors.Value += $errorRecord
 }
 
@@ -386,6 +389,7 @@ function Invoke-PingIt {
     [int]$destinationUnreachableCount = 0
     [int]$packetTooBigCount = 0
     [int]$timedOutCount = 0
+    [int]$unknownErrorCount = 0
     [bool]$errorActive = $false
     [bool]$doNotSleep = $false
     [string]$displayAddress = ''
@@ -548,6 +552,12 @@ function Invoke-PingIt {
                         $timedOutCount++
                         $currentError.TimedOutCount++
                         $errorDisplay = "Request timed out after $Timeout seconds"
+                    }
+                    default {
+                        # we can assume that this is an error because $result.Status is not Success
+                        $unknownErrorCount++
+                        $currentError.UnknownErrorCount++
+                        $errorDisplay = "Unknown error"
                     }
                 }
                 if ($result.Status -ne [System.Net.NetworkInformation.IPStatus]::Success) {
@@ -731,16 +741,19 @@ function Invoke-PingIt {
             if ($false -eq $LatencyMovingAvg) {
                 $moreInfo = ''
             }
-            [int]$latencyIssueAvg = [int]($latencyIssueTotal/$latencyIssuePingCount)
-            Write-Host "`n`n`Latency $moreInfo(>= $LatencyThreshold) issues summary:" -ForegroundColor Yellow -NoNewline
-            $latencyIssuesSummary = [PSCustomObject]@{
-                Elapsed = $totalElapsedLatency.ToString($elapsedFormat)
-                Count = $latencyIssuePingCount
-                Min = "$($latencyIssueMin)ms"
-                Max = "$($latencyIssueMax)ms"
-                Avg = "$($latencyIssueAvg)ms"
+            # no point in summarizing if there's only been a single latency issue
+            if ($latencyIssues.Count -gt 1) {
+                [int]$latencyIssueAvg = [int]($latencyIssueTotal/$latencyIssuePingCount)
+                Write-Host "`n`n`Latency $moreInfo(>= $LatencyThreshold) issues summary:" -ForegroundColor Yellow -NoNewline
+                $latencyIssuesSummary = [PSCustomObject]@{
+                    Elapsed = $totalElapsedLatency.ToString($elapsedFormat)
+                    Count = $latencyIssuePingCount
+                    Min = "$($latencyIssueMin)ms"
+                    Max = "$($latencyIssueMax)ms"
+                    Avg = "$($latencyIssueAvg)ms"
+                }
+                $latencyIssuesSummary | Format-Table
             }
-            $latencyIssuesSummary | Format-Table
 
             # details output
             Write-Host "`nLatency ${moreInfo}issues detail ($($latencyIssues.Count)):" -ForegroundColor Yellow -NoNewline
@@ -748,26 +761,33 @@ function Invoke-PingIt {
                 ColorizeMinMax $_.Elapsed $latencyDetailRecords.Count $_.Index $maxLatencyIndex $minLatencyIndex
             }}, Count, Min, Max, Avg
 
-            Write-Host "Latency Issues Total Elapsed: $($totalElapsedLatency.ToString($elapsedFormat))."
-            if ($latencyDetailRecords.Count -gt 1) {
-                [timespan]$latencyIssueAvgElapsed = ($totalElapsedLatency/$latencyIssues.Count)
-                Write-Host "Latency Issues Average Elapsed: $($latencyIssueAvgElapsed.ToString($elapsedFormat))."
+            # no point in showing totals if there's only been a single latency issue
+            if ($latencyIssues.Count -gt 1) {
+                Write-Host "Latency Issues Total Elapsed: $($totalElapsedLatency.ToString($elapsedFormat))."
+                if ($latencyDetailRecords.Count -gt 1) {
+                    [timespan]$latencyIssueAvgElapsed = ($totalElapsedLatency/$latencyIssues.Count)
+                    Write-Host "Latency Issues Average Elapsed: $($latencyIssueAvgElapsed.ToString($elapsedFormat))."
+                }
             }
         }
 
         # error summary and details
         [TimeSpan]$totalElapsedError = New-TimeSpan # empty argument list gives a timespan of 0
         if ($errors.Count -gt 0) {
-            Write-Host "`n`n`Outage summary (packet counts):" -ForegroundColor Red -NoNewline
-            $errorSummary = [PSCustomObject]@{
-                Total = $destinationHostUnreachableCount + $destinationNetworkUnreachableCount + $destinationUnreachableCount + $timedOutCount + $noResponseCount
-                HostUnreachable = $destinationHostUnreachableCount
-                NetworkUnreachable = $destinationNetworkUnreachableCount
-                OtherUnreachable = $destinationUnreachableCount
-                TimedOut = $timedOutCount
-                NoResponse = $noResponseCount
+            # no point in summarizing if there's only been a single outage
+            if ($errors.Count -gt 1) {
+                Write-Host "`n`n`Outage summary (packet counts):" -ForegroundColor Red -NoNewline
+                $errorSummary = [PSCustomObject]@{
+                    Total = $destinationHostUnreachableCount + $destinationNetworkUnreachableCount + $destinationUnreachableCount + $timedOutCount + $noResponseCount + $unknownErrorCount
+                    HostUnreachable = $destinationHostUnreachableCount
+                    NetworkUnreachable = $destinationNetworkUnreachableCount
+                    OtherUnreachable = $destinationUnreachableCount
+                    TimedOut = $timedOutCount
+                    Unknown = $unknownErrorCount
+                    NoResponse = $noResponseCount
+                }
+                $errorSummary | Format-Table
             }
-            $errorSummary | Format-Table
 
             $outageDetailRecords = @()
             [TimeSpan]$minOutage = New-TimeSpan -Days 3650
@@ -777,13 +797,14 @@ function Invoke-PingIt {
             [int]$errorsIndex = 0
             foreach ($error in $errors) {
                 $outageDetailRecords += [PSCustomObject]@{
-                    Count = $error.DestinationHostUnreachableCount + $error.DestinationNetworkUnreachableCount + $error.DestinationUnreachableCount + $error.NoResponseCount + $error.PacketTooBigCount + $error.TimedOutCount
+                    Count = $error.DestinationHostUnreachableCount + $error.DestinationNetworkUnreachableCount + $error.DestinationUnreachableCount + $error.NoResponseCount + $error.PacketTooBigCount + $error.TimedOutCount + $error.UnknownErrorCount
                     Elapsed = $error.Elapsed.ToString($elapsedFormat)
                     End = $error.End.ToString($timestampFormat)
                     Index = $errorsIndex # not for output
                     NoResponse = $error.NoResponseCount
                     Start = $error.Start.ToString($timestampFormat)
                     TimedOut = $error.TimedOutCount
+                    Unknown = $error.UnknownErrorCount
                     Unreachable = $error.DestinationHostUnreachableCount + $error.DestinationNetworkUnreachableCount + $error.DestinationUnreachableCount
                 }
                 $totalElapsedError += $error.Elapsed
@@ -802,12 +823,15 @@ function Invoke-PingIt {
             Write-Host "`nOutage detail ($($errors.Count) outages):" -ForegroundColor Red -NoNewline
             $outageDetailRecords | Format-Table -Property Start, End, @{Name = 'Elapsed'; e={
                 ColorizeMinMax $_.Elapsed $outageDetailRecords.Count $_.Index $maxOutageIndex $minOutageIndex
-            }}, Count, NoResponse, Unreachable, TimedOut
+            }}, Count, NoResponse, Unreachable, TimedOut, Unknown
 
-            Write-Host "Outages Total Elapsed: $($totalElapsedError.ToString($elapsedFormat))."
-            if ($outageDetailRecords.Count -gt 1) {
-                [timespan]$outageAvgElapsed = ($totalElapsedError/$errors.Count)
-                Write-Host "Outage Average Elapsed: $($outageAvgElapsed.ToString($elapsedFormat))."
+            # no point in showing totals if there's only been a single outage
+            if ($errors.Count -gt 1) {
+                Write-Host "Outages Total Elapsed: $($totalElapsedError.ToString($elapsedFormat))."
+                if ($outageDetailRecords.Count -gt 1) {
+                    [timespan]$outageAvgElapsed = ($totalElapsedError/$errors.Count)
+                    Write-Host "Outage Average Elapsed: $($outageAvgElapsed.ToString($elapsedFormat))."
+                }
             }
         }
         if ($ctrlCIntercepted) {

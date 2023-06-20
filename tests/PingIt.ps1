@@ -9,4 +9,3 @@ catch {
 Import-Module .\..\PingIt.psm1
 
 Invoke-PingIt @args
-
