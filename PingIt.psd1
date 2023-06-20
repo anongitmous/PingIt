@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.6'
+ModuleVersion = '0.0.7'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -108,6 +108,11 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.7
+* Added a default handler for ping results
+* Fixed regression defect within FinalizeOutage introduced when support for configuring a ping count threshold for outages
+* If there is only a single latency or outage issue, then neither summary info nor total info will be shown
+
 ## 0.0.6
 * When tracking latency issues using the -LatencyMovingAvg switch, prior to the summary output display, it can be difficult
 to figure out from the per-ping output when a latency issue has come to an end. A change has been made which inverts the foreground
