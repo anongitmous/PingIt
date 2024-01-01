@@ -12,7 +12,7 @@
 RootModule = 'PingIt.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.8'
+ModuleVersion = '0.0.9'
 
 # Supported PSEditions
 # CompatiblePSEditions = @('Core')
@@ -33,7 +33,7 @@ Copyright = '(c) mattf. All rights reserved.'
 Description = 'Ping-like functionality that also has the capability to track outages and latency issues.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '7.2.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 0.0.9
+* Updated the minimum version. Added some minor comments.
+
 ## 0.0.8
 * The actual status is now displayed to the user for ping result error statuses for which we do not specifically account
 

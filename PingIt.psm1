@@ -244,15 +244,15 @@ function ResolveDestination {
         TargetName = $target
         TimeoutSeconds = $timeoutSeconds
     }
-    [Microsoft.Powershell.Commands.TestConnectionCommand+PingStatus]$result = $null
+    [Microsoft.Powershell.Commands.TestConnectionCommand+PingStatus]$result = $null # PingStatus requires PS >= 7.2.0
     $result = Test-Connection @theArgs
     [bool]$isError = $false
     if (Test-Path variable:\$err) {
         [PSVariable]$variable = Get-Variable $err
-        [System.Collections.ArrayList]$value = ($null -ne $variable) ? $variable.Value : [System.Collections.ArrayList]::new()
-          if ($value.Count -gt 0) {
+        [System.Collections.ArrayList]$value = ($null -ne $variable) ? $variable.Value : [System.Collections.ArrayList]::new() # ternary operator requires PS >= 7.0
+        if ($value.Count -gt 0) {
             $isError = $true
-          }
+        }
     }
 
     if ($isError -or $null -eq $result) {
@@ -345,21 +345,21 @@ function Invoke-PingIt {
     $Host.UI.RawUI.FlushInputBuffer()
 
     $theArgs = @{
-        BufferSize = $BufferSize
-        Count = 1 # this is 1 because we want the output from Test-Connection after each call
+        BufferSize = $BufferSize # requires PS >= 5.1.0
+        Count = 1 # this is 1 because we want the output from Test-Connection after each call. requires PS >= 5.1.0
         ErrorAction = 'SilentlyContinue'
-        MaxHops = $MaxHops
-        TargetName = $Target
-        TimeoutSeconds = $Timeout
+        MaxHops = $MaxHops # MaxHops requires PS >= 7.2.0
+        TargetName = $Target # TargetName requires PS >= 7.2.0
+        TimeoutSeconds = $Timeout # TimeoutSeconds requires PS >= 7.2.0
     }
     if ($DontFragment) {
-        $theArgs.Add('DontFragment', $true)
+        $theArgs.Add('DontFragment', $true) # DontFragment requires PS >= 7.2.0
     }
     if ($IPv4) {
-        $theArgs.Add('IPv4', $true)
+        $theArgs.Add('IPv4', $true) # IPv4 requires PS >= 7.2.0
     }
     if ($IPv6) {
-        $theArgs.Add('IPv6', $true)
+        $theArgs.Add('IPv6', $true) # IPv6 requires PS >= 7.2.0
     }
 
 
@@ -400,7 +400,7 @@ function Invoke-PingIt {
     [DateTime]$endTimestamp = 0
     [bool]$ctrlCIntercepted = $false
 
-    [Microsoft.Powershell.Commands.TestConnectionCommand+PingStatus]$result = $null
+    [Microsoft.Powershell.Commands.TestConnectionCommand+PingStatus]$result = $null # PingStatus requires PS >= 7.2.0
     if ($ResolveDestination) {
         $resolveDestArgs = @{
             bufferSize = $BufferSize
@@ -409,7 +409,6 @@ function Invoke-PingIt {
         }
         ResolveDestination @resolveDestArgs
         $ResolveDestination = $false
-        $theArgs.Remove('ResolveDestination')
     }
     else {
         Write-Host "Pinging $Target with $BufferSize bytes of data:"
