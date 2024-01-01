@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/anongitmous/PingIt/blob/master/LICENSE)
 [![Documentation - PingIt](https://img.shields.io/badge/Documentation-PingIt-blue.svg)](https://github.com/anongitmous/PingIt/blob/master/README.md)
 [![PowerShell Gallery - PingIt](https://img.shields.io/badge/PowerShell%20Gallery-PingIt-blue.svg)](https://www.powershellgallery.com/packages/PingIt)
-[![Minimum Supported PowerShell Version](https://img.shields.io/badge/PowerShell-6.0-blue.svg)](https://github.com/anongitmous/PingIt)
+[![Minimum Supported PowerShell Version](https://img.shields.io/badge/PowerShell-7.2.0-blue.svg)](https://github.com/anongitmous/PingIt)
 
 Important Note
 ==============
@@ -46,7 +46,7 @@ Screenshots
 Requirements
 ============
 
-- PowerShell 6.0 or higher.
+- PowerShell 7.2.0 or higher.
 
 
 Installation
